@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>URL Shortener - History</title>
+
+    <style>
+        body {
+            background-color: #1e1e1e;
+            color: #fff;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        nav {
+            background-color: #333;
+            padding: 10px;
+            width: 100%;
+            text-align: center;
+            margin-bottom: 20px; /* Add margin-bottom to reduce space */
+        }
+
+        nav a {
+            color: #fff;
+            text-decoration: none;
+            padding: 10px;
+            margin: 0 10px;
+        }
+
+        form {
+            background-color: #333;
+            border-radius: 8px;
+            padding: 20px;
+            text-align: center;
+            width: 90%;
+            max-width: 400px; /* Set the maximum width of the form */
+            margin-top: 20px;
+        }
+
+        input[type="text"] {
+            width: 90%;
+            padding: 15px; /* Increase padding for a larger input field */
+            margin-bottom: 10px;
+            border: none;
+            border-radius: 4px;
+            background-color: #2d2d2d;
+            color: #fff;
+            outline: none;
+        }
+
+        input[type="submit"] {
+            width: 100%;
+            padding: 10px;
+            border: none;
+            border-radius: 4px;
+            background-color: #4caf50;
+            color: #fff;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        input[type="submit"]:hover {
+            background-color: #45a049;
+        }
+
+        #history-table {
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        table {
+            width: 80%;
+            margin-top: 20px;
+            border-collapse: collapse;
+            overflow-x: auto;
+        }
+
+        th, td {
+            border-bottom: 1px solid #ddd;
+            padding: 15px;
+            text-align: centers;
+            width: 20vw;
+        }
+
+        th {
+            background-color: #333;
+            color: #fff;
+        }
+    </style>
+</head>
+
+<body>
+    <nav>
+        <a href="index.html">Home</a>
+        <a href="history.html">History</a>
+        <a href="admin.html">Admin</a>
+    </nav>
+
+    <h2>URL History</h2>
+
+    <form id="historyForm">
+        <input type="text" id="short-url" placeholder="Enter Short URL" required>
+        <input type="submit" value="Get History">
+    </form>
+
+    <!-- Display History in Table -->
+    <div id="history-table"></div>
+
+    <script>
+        document.getElementById('historyForm').addEventListener('submit', function (event) {
+            event.preventDefault();
+
+            // Get the short URL from the input
+            const inputUrl = document.getElementById('short-url').value;
+
+            // Extract the short ID from the URL
+            const shortID = extractShortID(inputUrl);
+
+            // Make a GET request to your API endpoint
+            fetch(`http://localhost:8000/url/stats/${shortID}`)
+                .then(response => response.json())
+                .then(data => {
+                    // Display the history in a table
+                    const historyTable = document.getElementById('history-table');
+                    historyTable.innerHTML = "<h3>Visit History</h3>";
+
+                    if (data.history.length > 0) {
+                        // Prepare data for the table
+                        const tableData = data.history.map(entry => [new Date(entry.timestamp).toLocaleString(), entry._id]);
+
+                        // Create the table
+                        const table = document.createElement('table');
+                        const headerRow = table.insertRow(0);
+                        const timestampHeader = headerRow.insertCell(0);
+                        const idHeader = headerRow.insertCell(1);
+
+                        timestampHeader.innerHTML = 'Timestamp';
+                        idHeader.innerHTML = 'URL';
+
+                        tableData.forEach((entry, index) => {
+                            const row = table.insertRow(index + 1);
+                            const timestampCell = row.insertCell(0);
+                            const idCell = row.insertCell(1);
+
+                            timestampCell.innerHTML = entry[0];
+                            idCell.innerHTML = entry[1];
+                        });
+
+                        historyTable.appendChild(table);
+                    } else {
+                        historyTable.innerHTML += "<p>No history found.</p>";
+                    }
+
+                    // Display the total visits
+                    historyTable.innerHTML += `<p>Total Visits: ${data.visits}</p>`;
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                });
+        });
+
+        function extractShortID(url) {
+            const parts = url.split('/');
+            return parts[parts.length - 1];
+        }
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>URL Shortener - Admin</title>
+
+    <style>
+        body {
+            background-color: #1e1e1e;
+            color: #fff;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        nav {
+            background-color: #333;
+            padding: 10px;
+            width: 100%;
+            text-align: center;
+            margin-bottom: 20px; /* Add margin-bottom to reduce space */
+        }
+
+        nav a {
+            color: #fff;
+            text-decoration: none;
+            padding: 10px;
+            margin: 0 10px;
+        }
+
+        form {
+            background-color: #333;
+            border-radius: 8px;
+            padding: 20px;
+            text-align: center;
+            width: 90%;
+            max-width: 400px; /* Set the maximum width of the form */
+            margin-top: 20px;
+        }
+
+        input[type="text"] {
+            width: 90%;
+            padding: 15px; /* Increase padding for a larger input field */
+            margin-bottom: 10px;
+            border: none;
+            border-radius: 4px;
+            background-color: #2d2d2d;
+            color: #fff;
+            outline: none;
+        }
+
+        input[type="submit"] {
+            width: 100%;
+            padding: 10px;
+            border: none;
+            border-radius: 4px;
+            background-color: #4caf50;
+            color: #fff;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        input[type="submit"]:hover {
+            background-color: #45a049;
+        }
+
+        #admin-table {
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        table {
+            width: 80%;
+            margin-top: 20px;
+            border-collapse: collapse;
+            overflow-x: auto;
+        }
+
+        th, td {
+            border: 1px solid #ddd;
+            padding: 15px;
+            text-align: left;
+            width: 40vw;
+        }
+
+        th {
+            background-color: #333;
+            color: #fff;
+        }
+
+        .delete-btn {
+            cursor: pointer;
+            background-color: #ff5252;
+            color: #fff;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+    </style>
+</head>
+
+<body>
+    <nav>
+        <a href="index.html">Home</a>
+        <a href="history.html">History</a>
+        <a href="admin.html">Admin</a> <!-- Add a link to the admin page -->
+    </nav>
+
+    <h2>Admin Panel</h2>
+
+    <form id="adminForm">
+        <input type="text" id="admin-name" placeholder="Enter URL" required>
+        <input type="submit" value="Submit">
+    </form>
+
+    <h2>Total shortened URLs: <span id="visitCount">0</span></h2>
+    <!-- Display Admin URLs in Table -->
+    <div id="admin-table"></div>
+
+    <script>
+
+        async function FetchDetails(){
+                event.preventDefault();
+
+                // Get the admin name from the input
+                const adminName = document.getElementById('admin-name').value;
+
+                // Make a POST request to the /url/admin endpoint
+                fetch(`http://localhost:8000/url/admin`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ url: adminName }),
+                })
+                    .then(response => response.json())
+                    .then(data => {
+                        // Display the URLs in a table
+                        const adminTable = document.getElementById('admin-table');
+                        adminTable.innerHTML = "<h3>Admin URLs</h3>";
+                        if (data.urls.length > 0) {
+                            // Prepare data for the table
+                            const tableData = data.urls.map(url => [
+                                url.shortID,
+                                url.redirectURL,
+                                new Date(url.createdAt).toLocaleString(),
+                                `<button class="delete-btn" onclick="deleteUrl('${url._id}', '${url.shortID}')">Delete</button>`
+                            ]);
+
+                            // Create the table
+                            const table = document.createElement('table');
+                            const headerRow = table.insertRow(0);
+                            const shortIDHeader = headerRow.insertCell(0);
+                            const redirectURLHeader = headerRow.insertCell(1);
+                            const createdAtHeader = headerRow.insertCell(2);
+                            const deleteHeader = headerRow.insertCell(3);
+
+                            shortIDHeader.innerHTML = 'Short ID';
+                            redirectURLHeader.innerHTML = 'Redirect URL';
+                            createdAtHeader.innerHTML = 'Created At';
+                            deleteHeader.innerHTML = 'Action';
+
+                            tableData.forEach((entry, index) => {
+                                const row = table.insertRow(index + 1);
+                                entry.forEach((cell, cellIndex) => {
+                                    const cellElement = row.insertCell(cellIndex);
+                                    cellElement.innerHTML = cell;
+                                });
+                            });
+
+                            adminTable.appendChild(table);
+                            document.getElementById('visitCount').innerHTML = data.urls.length
+                        } else {
+                            adminTable.innerHTML += "<p>No URLs found.</p>";
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                    });
+            
+    }
+
+        async function deleteUrl(urlId, shortID) {
+            // Make a DELETE request to the /url/:shortid endpoint
+            fetch(`http://localhost:8000/url/${shortID}`, {
+                method: 'DELETE',
+            })
+                .then(response => response.json())
+                .then(data => {
+                    // Handle the response, maybe update the table or show a message
+                    console.log(data);
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                });
+                await FetchDetails();
+        }
+        document.getElementById('adminForm').addEventListener('submit',async function (event) {
+            event.preventDefault();
+            console.log("hello");
+            await FetchDetails();
+        });
+    </script>
+</body>
+
+</html>
