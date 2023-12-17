@@ -135,7 +135,7 @@
                 const adminName = document.getElementById('admin-name').value;
 
                 // Make a POST request to the /url/admin endpoint
-                fetch(`http://localhost:8000/url/admin`, {
+                fetch(`https://shortedlink.vercel.app/url/admin`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -191,7 +191,7 @@
 
         async function deleteUrl(urlId, shortID) {
             // Make a DELETE request to the /url/:shortid endpoint
-            fetch(`http://localhost:8000/url/${shortID}`, {
+            fetch(`https://shortedlink.vercel.app/url/${shortID}`, {
                 method: 'DELETE',
             })
                 .then(response => response.json())

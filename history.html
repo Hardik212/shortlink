@@ -126,7 +126,7 @@
             const shortID = extractShortID(inputUrl);
 
             // Make a GET request to your API endpoint
-            fetch(`http://localhost:8000/url/stats/${shortID}`)
+            fetch(`https://shortedlink.vercel.app/url/stats/${shortID}`)
                 .then(response => response.json())
                 .then(data => {
                     // Display the history in a table
