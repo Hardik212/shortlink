@@ -17,7 +17,7 @@ async function handleGenerateShortUrl(req, res) {
     VisitHistory: [],
   });
   newurl.save();
-  return res.json({id:`${BASE_URL}/url/${shortID}`});
+  return res.json({id:`${BASE_URL}url/${shortID}`});
 }
 
 async function handleRedirectUrl(req, res) {
